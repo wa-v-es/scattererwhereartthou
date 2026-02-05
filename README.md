@@ -1,6 +1,8 @@
 # scattererwhereartthou
 Find possible scatterers from slowness and back azimuth
 
+The basic idea is to shoot a ray from the station with the known ray param. Then consider each point along the path as if it is a potential scatterer. Then, check to see if a ray from that scatterer with the residual travel time can arrive at the earthquake location, and with travel distance large enough that a triangle is possible. If so, calculate the lat,lon that the scatterer would need to be at in order to have the correct distance to the earthquake and station via a little spherical geometry.
+
 # Requirement
 This makes use of the TauP Toolkit for the path and time calculations and the version must be > 3.2.0.
 
