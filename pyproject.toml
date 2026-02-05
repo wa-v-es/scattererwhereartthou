@@ -21,6 +21,9 @@ requires-python = ">=3.11"
 dependencies = [
     'taup',
     'requests',
+    'matplotlib',
+    'cartopy',
+    'pathlib',
     'tomli >= 1.1.0 ; python_version < "3.11"'
 ]
 
@@ -28,6 +31,9 @@ dependencies = [
 Homepage = "https://github.com/crotwell/scattererWhereArtThou"
 Repository = "https://github.com/crotwell/scattererWhereArtThou"
 Issues = "https://github.com/crotwell/scattererWhereArtThou/issues"
+
+[project.scripts]
+swat = "scattererwhereartthou.swat_main:main"
 
 [tool.pytest.ini_options]
 addopts = [
