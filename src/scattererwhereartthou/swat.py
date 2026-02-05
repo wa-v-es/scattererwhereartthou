@@ -26,6 +26,7 @@ class SWAT:
         params = taup.TimeQuery()
         params.model(self.model)
         params.sourcedepth(timedist.depth) # scatterer depth
+        params.receiverdepth(self.eventdepth)
         params.seconds(traveltime-timedist.time)
         params.phase(self.toscatphase)
         result = params.calc(self.taupserver)
