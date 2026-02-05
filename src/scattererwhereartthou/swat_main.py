@@ -37,7 +37,10 @@ def runswat(args):
             for a in result.arrivals[:1]:
                 if args.verbose:
                     print(f"Arrival: {a}")
-                swat = SWAT(taupserver, args.eventdepth, a.distdeg, toscatphase, fromscatphase, model=args.model)
+                swat = SWAT(taupserver, args.eventdepth, a.distdeg,
+                            toscatphase, fromscatphase, model=args.model)
+                if args.mindepth is not None:
+                    swat.minDepth(args.mindepth)
                 swat.event(evtlat, evtlon)
                 swat.station(stalat, stalon)
                 ans = swat.find_via_path(args.slow, a.time+args.delay)
@@ -97,6 +100,11 @@ def do_parseargs():
         "--slow",
         help="observed slowness of suspected scatterer (s/deg)",
         type=float, required=True
+    )
+    parser.add_argument(
+        "--mindepth",
+        help="minimum depth of suspected scatterer (km)",
+        type=float, default=50
     )
     parser.add_argument(
         "--model",

@@ -16,6 +16,9 @@ class SWAT:
         self.evtlon =  None
         self.stalat = None
         self.stalon = None
+        self._mindepth=50
+    def minDepth(self, val):
+        self._mindepth=val
     def event(self, evtlat, evtlon):
         self.evtlat = evtlat
         self.evtlon =  evtlon
@@ -50,13 +53,13 @@ class SWAT:
                     "sta_scat": sta_scat_arrival})
         return scatterers
 
-    def check_path_points(self, sta_scat_arrival, traveltime, mindepth=50):
+    def check_path_points(self, sta_scat_arrival, traveltime):
         scat = []
         for seg in sta_scat_arrival.pathSegments:
             for td in seg.segment:
                 if td.distdeg == 0:
                     continue
-                if td.depth < mindepth:
+                if td.depth < self._mindepth:
                     continue
                 #print(f"path: deg: {td.distdeg} depth: {td.depth}  time: {td.time}")
                 scat = scat + self.scat_to_eq(td, traveltime, sta_scat_arrival)
@@ -89,6 +92,7 @@ class SWAT:
             "stalon": self.stalon,
             "rayparamdeg": rayparamdeg,
             "traveltime": traveltime,
+            "mindepth": self._mindepth,
             "scatterers": scatterers
         }
         for a in result.arrivals:
