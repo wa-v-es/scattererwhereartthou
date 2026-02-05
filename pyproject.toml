@@ -19,7 +19,7 @@ classifiers = [
 ]
 requires-python = ">=3.11"
 dependencies = [
-    'taup',
+    'taup >= 3.2.0a1',
     'requests',
     'matplotlib',
     'cartopy',
