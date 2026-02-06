@@ -73,7 +73,7 @@ options:
 
 # Example
 
-Say and earthquake is at (-1, -101) with depth 100 km and station at (34, -80). A possible scatterer is observed at 20 seconds after the P arrival with slowness 8.0 s/deg. This will show a map plot
+Say and earthquake is at (-1, -101) with depth 100 km and station at (34, -80). A possible scatterer is observed at 5 seconds after the P arrival with slowness 8.0 s/deg. This will show a map plot
 of all the scatterers that can satisfy these values:
 
 ```
