@@ -30,7 +30,7 @@ def mapplot(mydata, outfilename="swat_map.png", show=True):
     ax.add_feature(cfeature.OCEAN, color='lightskyblue')
     ax.add_feature(cfeature.LAND, color="oldlace")
     gridlines=ax.gridlines(draw_labels=True, alpha=.80)
-    plt.title(f'Scatter:{firstData["traveltime"]} rayp:{firstData["rayparamdeg"]} phase:{firstData["toscatphase"]} - {firstData["fromscatphase"]}')
+    plt.title(f'Scatter: rayp:{firstData["rayparamdeg"]} phase:{firstData["toscatphase"]} - {firstData["fromscatphase"]}  {makeBazTitle(firstData)}')
 
     plt.scatter(firstData["stalon"], firstData["stalat"], marker='v', s=20, color='blue')
     plt.scatter(firstData["evtlon"], firstData["evtlat"], marker='*', s=20, color='blue')
@@ -68,7 +68,7 @@ def sliceplot(mydata, outfilename="swat_slice.png", show=True, rofe=6371):
     print(f"ax.set_rmax({rofe})")
     print(f"ax.set_rmin({rofe}-{deepest})")
 
-    plt.title(f'Scatter:{firstData["traveltime"]} rayp:{firstData["rayparamdeg"]} phase:{firstData["toscatphase"]} - {firstData["fromscatphase"]}')
+    plt.title(f'Scatter: rayp:{firstData["rayparamdeg"]} phase:{firstData["toscatphase"]} - {firstData["fromscatphase"]} {makeBazTitle(firstData)}')
 
     plt.scatter(math.radians(firstData["esdistdeg"]), firstData["eventdepth"], marker='*', s=20, color='blue')
 
@@ -88,3 +88,9 @@ def sliceplot(mydata, outfilename="swat_slice.png", show=True, rofe=6371):
         plt.show()
     else:
         return None
+
+def makeBazTitle(firstData):
+    bazTitle = ""
+    if firstData["bazdelta"] < 180:
+        bazTitle = f"Baz: {firstData['bazoffset']}+-{firstData['bazdelta']}"
+    return bazTitle
