@@ -32,12 +32,12 @@ def mapplot(mydata, outfilename="swat_map.png", show=True):
     gridlines=ax.gridlines(draw_labels=True, alpha=.80)
     plt.title(f'Scatter: rayp:{firstData["rayparamdeg"]} phase:{firstData["toscatphase"]} - {firstData["fromscatphase"]}  {makeBazTitle(firstData)}')
 
-    plt.scatter(firstData["stalon"], firstData["stalat"], marker='v', s=20, color='blue')
-    plt.scatter(firstData["evtlon"], firstData["evtlat"], marker='*', s=20, color='blue')
+    plt.scatter(firstData["stalon"], firstData["stalat"], marker='v', s=40, color='cadetblue')
+    plt.scatter(firstData["evtlon"], firstData["evtlat"], marker='*', s=40, color='cadetblue')
 
     for s in firstData["scatterers"]:
-        plt.scatter(s["scat"].lon, s["scat"].lat, marker='.', color='tomato')
-    plt.savefig(outfilename, dpi=700, bbox_inches='tight', pad_inches=0.1)
+        plt.scatter(s["scat"].lon, s["scat"].lat, edgecolors='white',lw=.5, marker='.', color='tomato',alpha=20)
+    plt.savefig(outfilename, dpi=300, bbox_inches='tight', pad_inches=0.1)
     if show:
         print("Show map")
         plt.show()
