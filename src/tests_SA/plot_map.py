@@ -27,11 +27,13 @@ def extract_seconds(fname):
         raise ValueError(f"Can't parse seconds from filename: {fname}")
     return int(m.group(1))
 
-folder_pattern = "slow_6_time/*.json"
+folder_pattern = "slow_5_time/*.json"
 files = sorted(glob.glob(folder_pattern))
 
 cmap = plt.get_cmap("plasma")   # pick any: viridis, plasma, turbo, etc.
-norm = mpl.colors.Normalize(vmin=1, vmax=20)  # 1–20 sec
+norm = mpl.colors.Normalize(vmin=0, vmax=2)  # 1–20 sec
+# norm = mpl.colors.Normalize(vmin=1, vmax=20)  # 1–20 sec
+
 geod=pyproj.Geod(ellps="WGS84")
 
 fig, ax=plt.subplots()
@@ -56,10 +58,10 @@ for fn in files:
             continue
         firstData = mydata["swat"][0]
         # plt.figure()
-        # plt.title(f'Scatter: rayp:{firstData["rayparamdeg"]} phase:{firstData["toscatphase"]} - {firstData["fromscatphase"]}  {makeBazTitle(firstData)}')
+        plt.title(f'Scatter: rayp:{firstData["rayparamdeg"]} phase:{firstData["toscatphase"]} - {firstData["fromscatphase"]}  {makeBazTitle(firstData)}')
 
-        for s in firstData["scatterers"]:
-            plt.scatter(s["scat"]['lon'], s["scat"]['lat'], edgecolors='black', s=50,lw=.25, marker='.', color=color,alpha=.8)
+        # for s in firstData["scatterers"]:
+            # plt.scatter(s["scat"]['lon'], s["scat"]['lat'], edgecolors='black', s=50,lw=.25, marker='.', color=color,alpha=.8)
 
 plt.scatter(firstData["stalon"], firstData["stalat"], marker='v', s=60, color='navy')
 plt.scatter(firstData["evtlon"], firstData["evtlat"], marker='*', s=60, color='navy')
@@ -74,5 +76,5 @@ sm = mpl.cm.ScalarMappable(norm=norm, cmap=cmap)
 sm.set_array([])
 cbar = plt.colorbar(sm, ax=ax,shrink=.6,pad=.1)
 cbar.set_label("Delay time (s)")
-plt.show()
-plt.savefig('slow_6_P5.png', dpi=300, bbox_inches='tight', pad_inches=0.1)
+# plt.show()
+plt.savefig('slow_5_simple.png', dpi=300, bbox_inches='tight', pad_inches=0.1)
