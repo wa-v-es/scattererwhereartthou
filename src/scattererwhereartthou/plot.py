@@ -36,8 +36,8 @@ def mapplot(mydata, outfilename="swat_map.png", show=True):
     plt.scatter(firstData["evtlon"], firstData["evtlat"], marker='*', s=40, color='cadetblue')
 
     for s in firstData["scatterers"]:
-        plt.scatter(s["scat"].lon, s["scat"].lat, edgecolors='white',lw=.5, marker='.', color='tomato',alpha=20)
-    plt.savefig(outfilename, dpi=300, bbox_inches='tight', pad_inches=0.1)
+        plt.scatter(s["scat"].lon, s["scat"].lat, edgecolors='black', s=30,lw=.15, marker='.', color='brown',alpha=.5)
+    plt.savefig(outfilename, dpi=200, bbox_inches='tight', pad_inches=0.1)
     if show:
         print("Show map")
         plt.show()
