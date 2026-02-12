@@ -27,9 +27,9 @@ def mapplot(mydata, outfilename="swat_map.png", show=True):
     firstData = mydata["swat"][0]
     plt.figure()
     ax = plt.axes(projection=ccrs.PlateCarree())
-    ax.add_feature(cfeature.OCEAN, color='lightskyblue')
+    ax.add_feature(cfeature.OCEAN, color='grey',alpha=.2)
     ax.add_feature(cfeature.LAND, color="oldlace")
-    gridlines=ax.gridlines(draw_labels=True, alpha=.80)
+    gridlines=ax.gridlines(draw_labels=True, alpha=.50)
     plt.title(f'Scatter: rayp:{firstData["rayparamdeg"]} phase:{firstData["toscatphase"]} - {firstData["fromscatphase"]}  {makeBazTitle(firstData)}')
 
     plt.scatter(firstData["stalon"], firstData["stalat"], marker='v', s=40, color='cadetblue')
