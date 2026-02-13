@@ -7,7 +7,9 @@ from .swat_result import SwatResult, Scatterer
 
 class SWAT:
     def __init__(self, taupserver, eventdepth,
-                 toscatphase="P", fromscatphase="P", model="prem"):
+                 toscatphase = "P,p,Ped",
+                 fromscatphase = "P,p,Ped",
+                 model="prem"):
         self.taupserver = taupserver
         self.eventdepth = eventdepth
         self.toscatphase = toscatphase
