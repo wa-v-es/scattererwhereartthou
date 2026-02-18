@@ -60,8 +60,8 @@ for fn in files:
         # plt.figure()
         plt.title(f'Scatter: rayp:{firstData["rayparamdeg"]} phase:{firstData["toscatphase"]} - {firstData["fromscatphase"]}  {makeBazTitle(firstData)}')
 
-        # for s in firstData["scatterers"]:
-            # plt.scatter(s["scat"]['lon'], s["scat"]['lat'], edgecolors='black', s=50,lw=.25, marker='.', color=color,alpha=.8)
+        for s in firstData["scatterers"]:
+            plt.scatter(s["scat"]['lon'], s["scat"]['lat'], edgecolors='black', s=50,lw=.25, marker='.', color=color,alpha=.8)
 
 plt.scatter(firstData["stalon"], firstData["stalat"], marker='v', s=60, color='navy')
 plt.scatter(firstData["evtlon"], firstData["evtlat"], marker='*', s=60, color='navy')
@@ -77,4 +77,4 @@ sm.set_array([])
 cbar = plt.colorbar(sm, ax=ax,shrink=.6,pad=.1)
 cbar.set_label("Delay time (s)")
 # plt.show()
-plt.savefig('slow_5_simple.png', dpi=300, bbox_inches='tight', pad_inches=0.1)
+plt.savefig('slow_5_P5.png', dpi=300, bbox_inches='tight', pad_inches=0.1)

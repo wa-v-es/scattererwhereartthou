@@ -18,26 +18,37 @@ import cartopy.feature as cfeature
 import json
 import sys
 
-def mapplot(mydata, outfilename="swat_map.png", show=True):
+def mapplot(swatList, tauptimes=None, outfilename="swat_map.png", show=True):
     #plot on 2D map
     print('starting to plot 2D')
-    if len(mydata["swat"]) == 0:
+    if len(swatList) == 0:
         print("noting to plot...")
         return
-    firstData = mydata["swat"][0]
+    firstData = swatList[0]
     plt.figure()
     ax = plt.axes(projection=ccrs.PlateCarree())
     ax.add_feature(cfeature.OCEAN, color='grey',alpha=.2)
     ax.add_feature(cfeature.LAND, color="oldlace")
-    gridlines=ax.gridlines(draw_labels=True, alpha=.50)
-    plt.title(f'Scatter: rayp:{firstData["rayparamdeg"]} phase:{firstData["toscatphase"]} - {firstData["fromscatphase"]}  {makeBazTitle(firstData)}')
+    gridlines=ax.gridlines(draw_labels=True, alpha=.80)
+    plt.title(f'Scatter: rayp:{firstData.rayparamdeg} phase:{firstData.toscatphase} - {firstData.fromscatphase}  {makeBazTitle(firstData)}')
 
-    plt.scatter(firstData["stalon"], firstData["stalat"], marker='v', s=40, color='cadetblue')
-    plt.scatter(firstData["evtlon"], firstData["evtlat"], marker='*', s=40, color='cadetblue')
+    if tauptimes is not None:
+        for a in tauptimes.arrivals:
+            alat = []
+            alon = []
+            for seg in a.pathSegments:
+                for td in seg.segment:
+                    alat.append(td.lat)
+                    alon.append(td.lon)
+            ax.plot(alon, alat, color='black')
 
-    for s in firstData["scatterers"]:
-        plt.scatter(s["scat"].lon, s["scat"].lat, edgecolors='black', s=30,lw=.15, marker='.', color='brown',alpha=.5)
-    plt.savefig(outfilename, dpi=200, bbox_inches='tight', pad_inches=0.1)
+
+    for swatData in swatList:
+        ax.scatter(swatData.stalon, swatData.stalat, marker='v', s=20, color='blue')
+        ax.scatter(swatData.evtlon, swatData.evtlat, marker='*', s=20, color='blue')
+        for s in swatData.scatterers:
+            ax.scatter(s.scat.lon, s.scat.lat, marker='.', color='tomato')
+    plt.savefig(outfilename, dpi=700, bbox_inches='tight', pad_inches=0.1)
     if show:
         print("Show map")
         plt.show()
@@ -46,41 +57,60 @@ def mapplot(mydata, outfilename="swat_map.png", show=True):
 
 
 
-def sliceplot(mydata, outfilename="swat_slice.png", show=True, rofe=6371):
+def sliceplot(swatList, tauptimes=None, outfilename="swat_slice.png", show=True, rofe=6371):
     #plot on 2D map
     print('starting to plot 2D')
-    if len(mydata["swat"]) == 0:
+    if len(swatList) == 0:
         print("noting to plot...")
         return
-    firstData = mydata["swat"][0]
-    deepest = 0
-    for s in firstData["scatterers"]:
-        if s["scat"].depth > deepest:
-            deepest = s["scat"].depth
-    for a in firstData["backrays"].arrivals:
-        for s in a.pathSegments:
-            for ss in s.segment:
-                if ss.depth > deepest:
-                    deepest = ss.depth
-    deepest = deepest * 1.10 # little bit more
+    firstData = swatList[0]
     plt.figure()
     ax = plt.axes(projection='polar')
+
+    plt.title(f'Scatter: rayp:{firstData.rayparamdeg} phase:{firstData.toscatphase} - {firstData.fromscatphase} {makeBazTitle(firstData)}')
+
+    plt.scatter(0, 0, marker='v', s=20, color='blue')
+
+
+    deepest = firstData.eventdepth
+    if tauptimes is not None:
+        for a in tauptimes.arrivals:
+            adist = []
+            adepth = []
+            for seg in a.pathSegments:
+                for td in seg.segment:
+                    adist.append(math.radians(td.distdeg))
+                    adepth.append(rofe-td.depth)
+                    if td.depth > deepest:
+                        deepest = td.depth
+            ax.plot(adist, adepth, color='black')
+
+
+    maxESDeg = firstData.esdistdeg
+    for swatData in swatList:
+        if swatData.eventdepth > deepest:
+            deepest = swatData.eventdepth
+        if swatData.esdistdeg > maxESDeg:
+            maxESDeg = swatData.esdistdeg
+        plt.scatter(math.radians(swatData.esdistdeg), rofe-swatData.eventdepth, marker='*', s=20, color='blue')
+        for s in swatData.scatterers:
+            plt.scatter(math.radians(s.scat.distdeg), rofe-s.scat.depth, marker='.', color='tomato')
+
+    for swatData in swatList:
+        for s in firstData.scatterers:
+            if s.scat.depth > deepest:
+                deepest = s.scat.depth
+    deepest  *= 1.10 # little bit more
+    maxESDeg *= 1.05
     print(f"ax.set_rmax({rofe})")
     print(f"ax.set_rmin({rofe}-{deepest})")
-
-    plt.title(f'Scatter: rayp:{firstData["rayparamdeg"]} phase:{firstData["toscatphase"]} - {firstData["fromscatphase"]} {makeBazTitle(firstData)}')
-
-    plt.scatter(math.radians(firstData["esdistdeg"]), firstData["eventdepth"], marker='*', s=20, color='blue')
-
-    for s in firstData["scatterers"]:
-        plt.scatter(math.radians(s["scat"].distdeg), rofe-s["scat"].depth, marker='.', color='tomato')
-
+    print(f"ax.set_thetamax({maxESDeg})")
 
     ax.set_rmax(rofe)
     ax.set_rmin(rofe-deepest)
     ax.set_rorigin(0)
     ax.set_thetamin(0)
-    ax.set_thetamax(firstData["esdistdeg"]*1.05)
+    ax.set_thetamax(maxESDeg)
     gridlines=ax.grid(True, alpha=.80)
     plt.savefig(outfilename, dpi=700, bbox_inches='tight', pad_inches=0.1)
     if show:
@@ -89,8 +119,8 @@ def sliceplot(mydata, outfilename="swat_slice.png", show=True, rofe=6371):
     else:
         return None
 
-def makeBazTitle(firstData):
+def makeBazTitle(swatData):
     bazTitle = ""
-    if firstData["bazdelta"] < 180:
-        bazTitle = f"Baz: {firstData['bazoffset']}+-{firstData['bazdelta']}"
+    if swatData.bazdelta < 180:
+        bazTitle = f"Baz: {swatData.bazoffset}+-{swatData.bazdelta}"
     return bazTitle

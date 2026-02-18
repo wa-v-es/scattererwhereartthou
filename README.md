@@ -23,7 +23,7 @@ https://www.seis.sc.edu/downloads/TauP/prerelease/taup-0.2.0a3-py3-none-any.whl
 
 4) create a conda environment, python>=3.11, install taup_python
 ```
-conda create -n swat python=3.13
+conda create -n swat python=3.13 -y
 conda activate swat
 pip install taup-0.2.0a3-py3-none-any.whl
 ```

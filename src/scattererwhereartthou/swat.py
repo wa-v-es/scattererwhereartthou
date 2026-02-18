@@ -2,10 +2,14 @@
 import dataclasses
 import taup
 from .spherical import findTrianglePoints, distaz_deg
+from .swat_result import SwatResult, Scatterer
+
 
 class SWAT:
     def __init__(self, taupserver, eventdepth,
-                 toscatphase="P", fromscatphase="P", model="prem"):
+                 toscatphase = "P,p,Ped",
+                 fromscatphase = "P,p,Ped",
+                 model="prem"):
         self.taupserver = taupserver
         self.eventdepth = eventdepth
         self.toscatphase = toscatphase
@@ -19,6 +23,7 @@ class SWAT:
         self.es_az = 0
         self.es_baz = 0
         self._mindepth=50
+        self.backproject_depths = self.find_backproject_depths()
     def minDepth(self, val):
         self._mindepth=val
     def event(self, evtlat, evtlon):
@@ -35,6 +40,23 @@ class SWAT:
                                                            self.evtlon,
                                                            self.stalat,
                                                            self.stalon)
+
+    def find_backproject_depths(self):
+        """
+        Find depths in the model that might be endpoints for the back projecting
+        rays. Should be the surface, 0, core mantle boundary and inner-outer
+        core boundary as those are the boundaries where the phase name can
+        change.
+        """
+        disconParams = taup.DisconQuery()
+        disconParams.model(self.model)
+        disconRes = disconParams.calc(self.taupserver)
+        backproject_depths = [0]
+        for discon in disconRes.models[0].discontinuities:
+            if discon.preferredname in ["moho", "cmb", "iocb"]:
+                backproject_depths.append(discon.depth)
+        return backproject_depths
+
     def distaz(self):
         return distaz_deg(evtlat, evtlon, stalat, stalon)
     def scat_to_eq(self, timedist, traveltime, sta_scat_arrival, bazoffset=0, bazdelta=180):
@@ -58,17 +80,15 @@ class SWAT:
                 tda = dataclasses.replace(timedist, lat=pta[0], lon=pta[1])
                 tdb = dataclasses.replace(timedist, lat=ptb[0], lon=ptb[1])
                 if bazdelta >= 180 or (pta_baz-minbaz) % 360 <= 2*bazdelta:
-                    scatterers.append({
-                        "scat": tda,
-                        "scat_baz": pta[2],
-                        "baz_offset": baz_offset,
-                        "scat_evt": a})
+                    scatterers.append(Scatterer(
+                        scat = tda,
+                        scat_baz = pta_baz,
+                        scat_evt = a))
                 if bazdelta >= 180 or (ptb_baz-minbaz) % 360 <= 2*bazdelta:
-                    scatterers.append({
-                        "scat": tdb,
-                        "scat_baz": ptb[2],
-                        "baz_offset": baz_offset,
-                        "scat_evt": a})
+                    scatterers.append(Scatterer(
+                        scat = tdb,
+                        scat_baz = ptb_baz,
+                        scat_evt = a))
         return scatterers
 
     def check_path_points(self, sta_scat_arrival, traveltime, bazoffset=0, bazdelta=180):
@@ -112,7 +132,7 @@ class SWAT:
         params.model(self.model)
         params.rayparamdeg(rayparamdeg)
         params.phase(self.fromscatphase)
-        params.receiverdepth([0, 2889])
+        params.receiverdepth(self.backproject_depths)
         # actually station, shoot ray back to scatterer
         # adding station as the "event" gives lat,lon for path points
         params.sourcedepth([0])
@@ -120,28 +140,26 @@ class SWAT:
             params.event(self.stalat, self.stalon)
         result = params.calc(self.taupserver)
         scatterers = []
-        out = {
-            "eventdepth": self.eventdepth,
-            "esdistdeg": self.es_distdeg,
-            "esaz": self.es_az,
-            "esbaz": self.es_baz,
-            "bazoffset": bazoffset,
-            "bazdelta": bazdelta,
-            "toscatphase": self.toscatphase,
-            "fromscatphase": self.fromscatphase,
-            "model": self.model,
-            "evtlat": self.evtlat,
-            "evtlon":  self.evtlon,
-            "stalat": self.stalat,
-            "stalon": self.stalon,
-            "rayparamdeg": rayparamdeg,
-            "traveltime": traveltime,
-            "mindepth": self._mindepth,
-            "scatterers": scatterers,
-            "backrays": result,
-        }
         for a in result.arrivals:
             spp = self.check_path_points(a, traveltime, bazoffset=bazoffset, bazdelta=bazdelta)
             scatterers = scatterers + spp
-        out["scatterers"] = scatterers
+        out = SwatResult(
+            eventdepth = self.eventdepth,
+            esdistdeg = self.es_distdeg,
+            esaz = self.es_az,
+            esbaz = self.es_baz,
+            bazoffset = bazoffset,
+            bazdelta = bazdelta,
+            toscatphase = self.toscatphase,
+            fromscatphase = self.fromscatphase,
+            model = self.model,
+            evtlat = self.evtlat,
+            evtlon =  self.evtlon,
+            stalat = self.stalat,
+            stalon = self.stalon,
+            rayparamdeg = rayparamdeg,
+            traveltime = traveltime,
+            mindepth = self._mindepth,
+            scatterers = scatterers
+        )
         return out

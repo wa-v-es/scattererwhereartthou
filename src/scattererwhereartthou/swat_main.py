@@ -21,20 +21,20 @@ def runswat(args):
         stalon = args.sta[1]
         params.station(stalat, stalon)
         params.phase(args.phase)
-        result = params.calc(taupserver)
+        timeResult = params.calc(taupserver)
         swatList = []
         output = {
-            "taup": result,
+            "taup": timeResult,
             "swat": swatList
         }
 
         toscatphase = "P,p,Ped"
         fromscatphase = "P,p,Ped"
 
-        if len(result.arrivals) == 0:
+        if len(timeResult.arrivals) == 0:
             print(f"No arrivals for {ref_phase} for {evtlat},{evtlon} ({eventdepth} km) to {stalat},{stalon}")
         else:
-            for a in result.arrivals[:1]:
+            for a in timeResult.arrivals:
                 if args.verbose:
                     print(f"Arrival: {a}")
                 swat = SWAT(taupserver, args.eventdepth,
@@ -54,9 +54,9 @@ def runswat(args):
             with open(args.json, "w") as outjson:
                 json.dump(output, outjson, indent=2, cls=taup.DataClassJsonEncoder)
         if args.map is not None or args.showmap:
-            mapplot(output, show=args.showmap)
+            mapplot(swatList, tauptimes=timeResult, show=args.showmap)
         if args.slice is not None or args.showslice:
-            sliceplot(output, show=args.showslice)
+            sliceplot(swatList, tauptimes=timeResult, show=args.showslice)
         if args.text or not(args.json or args.map or args.slice or args.showmap or args.showslice ):
             if args.text:
                 outf = open(args.text, "w")
@@ -64,9 +64,9 @@ def runswat(args):
                 outf = sys.stdout
             print(f" Lat   Lon   Depth Dist   Baz", file=outf)
             for s in swatList:
-                for scat in s["scatterers"]:
-                    pt = scat["scat"]
-                    baz = scat["scat_baz"]
+                for scat in s.scatterers:
+                    pt = scat.scat
+                    baz = scat.scat_baz
                     print(f"{pt.lat:.2f} {pt.lon:.2f} {pt.depth:.1f} {pt.distdeg:.2f} {baz:.1f}", file=outf)
             if args.text:
                 outf.close()
