@@ -10,12 +10,12 @@ from scattererwhereartthou import SWAT, mapplot, sliceplot
 taup_path="../../../seis/TauP/build/install/TauP/bin/taup"
 model="prem"
 evt=(66, 166)
-eventdepth=0
+eventdepth=200
 sta=(-11, 120)
 phase="P"
-slow=4.0
-delay=15.0
-
+slow=6.0
+delay=20.0
+max_dist_step=1.0 # max separation between path scatterers in degrees, default is 2 deg
 
 with taup.TauPServer( taup_path=taup_path) as taupserver:
     params = taup.PathQuery() # so we can plot path
@@ -31,6 +31,7 @@ with taup.TauPServer( taup_path=taup_path) as taupserver:
         swat = SWAT(taupserver, eventdepth, model=model)
         swat.event(*evt)
         swat.station(*sta)
+        swat.dist_step = max_dist_step # max dist deg between path point in degrees
         ans = swat.find_via_path(slow,
                                  a.time+delay)
         swatList.append(ans)

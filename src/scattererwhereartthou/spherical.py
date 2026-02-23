@@ -1,4 +1,5 @@
 import math
+from taup import TimeDist
 
 DtoR=math.pi/180.0
 RtoD=1/DtoR
@@ -82,3 +83,21 @@ def hav(theta):
 
 def invhav(h):
     return 2*math.asin(math.sqrt(h))
+
+def linInterpTDByDist(a, b, distdeg):
+    time = linearInterp(a.distdeg, a.time, b.distdeg, b.time, distdeg)
+    depth = linearInterp(a.distdeg, a.depth, b.distdeg, b.depth, distdeg)
+    lat = None
+    if a.lat is not None and b.lat is not None:
+        lat = linearInterp(a.distdeg, a.lat, b.distdeg, b.lat, distdeg)
+    lon = None
+    if a.lon is not None and b.lon is not None:
+        lat = linearInterp(a.distdeg, a.lon, b.distdeg, b.lon, distdeg)
+    return TimeDist(distdeg, depth, time, lat, lon)
+
+def linearInterp(xa, ya, xb, yb, x):
+    if x == xa:
+        return ya
+    if x == xb:
+        return yb
+    return (yb - ya) * (x - xa) / (xb - xa) + ya

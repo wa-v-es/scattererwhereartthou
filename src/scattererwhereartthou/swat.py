@@ -1,7 +1,8 @@
 
 import dataclasses
+import math
 import taup
-from .spherical import findTrianglePoints, distaz_deg
+from .spherical import findTrianglePoints, distaz_deg, linInterpTDByDist
 from .swat_result import SwatResult, Scatterer
 
 
@@ -22,6 +23,7 @@ class SWAT:
         self.es_distdeg = 0
         self.es_az = 0
         self.es_baz = 0
+        self.dist_step = 2
         self._mindepth=50
         self.backproject_depths = self.find_backproject_depths()
     def minDepth(self, val):
@@ -110,19 +112,29 @@ class SWAT:
         Returns a list of potential scatterers.
         """
         scat = []
+        prevTD = None
         for seg in sta_scat_arrival.pathSegments:
             for td in seg.segment:
-                if td.distdeg == 0:
+                if td.distdeg == 0 or td.depth < self._mindepth:
+                    prevTD = td
                     continue
-                if td.depth < self._mindepth:
-                    continue
-                #print(f"path: deg: {td.distdeg} depth: {td.depth}  time: {td.time}")
-                scatList = self.scat_to_eq(td,
-                                           traveltime,
-                                           sta_scat_arrival,
-                                           bazoffset=bazoffset,
-                                           bazdelta=bazdelta)
-                scat = scat + scatList
+                if prevTD is not None and math.fabs(td.distdeg-prevTD.distdeg) > self.dist_step:
+                    # need to interpolate between path points
+                    num = math.ceil(math.fabs(td.distdeg-prevTD.distdeg)/self.dist_step)
+                    step = (td.distdeg-prevTD.distdeg)/num
+                    for n in range(num):
+                        interpTD = linInterpTDByDist(prevTD, td, prevTD.distdeg+n*step)
+                        scat = scat + self.scat_to_eq(interpTD,
+                                                   traveltime,
+                                                   sta_scat_arrival,
+                                                   bazoffset=bazoffset,
+                                                   bazdelta=bazdelta)
+                scat = scat + self.scat_to_eq(td,
+                                       traveltime,
+                                       sta_scat_arrival,
+                                       bazoffset=bazoffset,
+                                       bazdelta=bazdelta)
+                prevTD = td
 
         print(sta_scat_arrival)
         return scat
