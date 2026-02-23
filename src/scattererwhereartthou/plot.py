@@ -79,7 +79,7 @@ def sliceplot(swatList, tauptimes=None, outfilename="swat_slice.png", show=True,
             adepth = []
             for seg in a.pathSegments:
                 for td in seg.segment:
-                    adist.append(math.radians(td.distdeg))
+                    adist.append(math.radians(a.distdeg-td.distdeg))
                     adepth.append(rofe-td.depth)
                     if td.depth > deepest:
                         deepest = td.depth
