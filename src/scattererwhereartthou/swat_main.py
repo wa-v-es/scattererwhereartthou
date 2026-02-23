@@ -28,8 +28,8 @@ def runswat(args):
             "swat": swatList
         }
 
-        toscatphase = "P,p,Ped"
-        fromscatphase = "P,p,Ped"
+        scat_eq_revphase = "P,p,Ped"
+        sta_scat_revphase = "P,p,Ped"
 
         if len(timeResult.arrivals) == 0:
             print(f"No arrivals for {ref_phase} for {evtlat},{evtlon} ({eventdepth} km) to {stalat},{stalon}")
@@ -38,7 +38,7 @@ def runswat(args):
                 if args.verbose:
                     print(f"Arrival: {a}")
                 swat = SWAT(taupserver, args.eventdepth,
-                            toscatphase, fromscatphase, model=args.model)
+                            scat_eq_revphase, sta_scat_revphase, model=args.model)
                 if args.mindepth is not None:
                     swat.minDepth(args.mindepth)
                 swat.event(evtlat, evtlon)

@@ -7,13 +7,13 @@ from .swat_result import SwatResult, Scatterer
 
 class SWAT:
     def __init__(self, taupserver, eventdepth,
-                 toscatphase = "P,p,Ped",
-                 fromscatphase = "P,p,Ped",
+                 scat_eq_revphase = "P,p,Ped",
+                 sta_scat_revphase = "P,p,Ped",
                  model="prem"):
         self.taupserver = taupserver
         self.eventdepth = eventdepth
-        self.toscatphase = toscatphase
-        self.fromscatphase = fromscatphase
+        self.scat_eq_revphase = scat_eq_revphase
+        self.sta_scat_revphase = sta_scat_revphase
         self.model = model
         self.evtlat = 0
         self.evtlon =  0
@@ -65,7 +65,7 @@ class SWAT:
         params.sourcedepth(timedist.depth) # scatterer depth
         params.receiverdepth(self.eventdepth)
         params.seconds(traveltime-timedist.time)
-        params.phase(self.toscatphase)
+        params.phase(self.scat_eq_revphase)
         result = params.calc(self.taupserver)
         minbaz = self.es_baz-bazoffset-bazdelta
         scatterers = []
@@ -131,7 +131,7 @@ class SWAT:
         params = taup.PathQuery()
         params.model(self.model)
         params.rayparamdeg(rayparamdeg)
-        params.phase(self.fromscatphase)
+        params.phase(self.sta_scat_revphase)
         params.receiverdepth(self.backproject_depths)
         # actually station, shoot ray back to scatterer
         # adding station as the "event" gives lat,lon for path points
@@ -150,8 +150,8 @@ class SWAT:
             esbaz = self.es_baz,
             bazoffset = bazoffset,
             bazdelta = bazdelta,
-            toscatphase = self.toscatphase,
-            fromscatphase = self.fromscatphase,
+            scat_eq_revphase = self.scat_eq_revphase,
+            sta_scat_revphase = self.sta_scat_revphase,
             model = self.model,
             evtlat = self.evtlat,
             evtlon =  self.evtlon,
