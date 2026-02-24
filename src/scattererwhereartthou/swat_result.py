@@ -18,7 +18,7 @@ class SwatResult:
     esbaz: float
     bazoffset: float
     bazdelta: float
-    scat_eq_revphase: list[str]
+    eq_scat_phase: list[str]
     sta_scat_revphase: list[str]
     model: str
     evtlat: float

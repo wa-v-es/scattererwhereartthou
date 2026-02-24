@@ -8,12 +8,12 @@ from .swat_result import SwatResult, Scatterer
 
 class SWAT:
     def __init__(self, taupserver, eventdepth,
-                 scat_eq_revphase = "P,p,Ped",
+                 eq_scat_phase = "P,p,Ped",
                  sta_scat_revphase = "P,p,Ped",
                  model="prem"):
         self.taupserver = taupserver
         self.eventdepth = eventdepth
-        self.scat_eq_revphase = scat_eq_revphase
+        self.eq_scat_phase = eq_scat_phase
         self.sta_scat_revphase = sta_scat_revphase
         self.model = model
         self.evtlat = 0
@@ -64,10 +64,10 @@ class SWAT:
     def scat_to_eq(self, timedist, traveltime, sta_scat_arrival, bazoffset=0, bazdelta=180):
         params = taup.TimeQuery()
         params.model(self.model)
-        params.sourcedepth(timedist.depth) # scatterer depth
-        params.receiverdepth(self.eventdepth)
+        params.receiverdepth(timedist.depth) # scatterer depth
+        params.sourcedepth(self.eventdepth)
         params.seconds(traveltime-timedist.time)
-        params.phase(self.scat_eq_revphase)
+        params.phase(self.eq_scat_phase)
         result = params.calc(self.taupserver)
         minbaz = self.es_baz-bazoffset-bazdelta
         scatterers = []
@@ -162,7 +162,7 @@ class SWAT:
             esbaz = self.es_baz,
             bazoffset = bazoffset,
             bazdelta = bazdelta,
-            scat_eq_revphase = self.scat_eq_revphase,
+            eq_scat_phase = self.eq_scat_phase,
             sta_scat_revphase = self.sta_scat_revphase,
             model = self.model,
             evtlat = self.evtlat,
