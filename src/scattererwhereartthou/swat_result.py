@@ -13,7 +13,6 @@ class Scatterer:
 class SwatResult:
     """Class for SWAT results."""
 
-    eventdepth: float
     esdistdeg: float
     esaz: float
     esbaz: float
@@ -24,6 +23,7 @@ class SwatResult:
     model: str
     evtlat: float
     evtlon:  float
+    evtdepth: float
     stalat: float
     stalon: float
     rayparamdeg: float

@@ -7,12 +7,12 @@ from .swat_result import SwatResult, Scatterer
 
 
 class SWAT:
-    def __init__(self, taupserver, eventdepth,
+    def __init__(self, taupserver, evtdepth,
                  eq_scat_phase = "P,p,Ped",
                  sta_scat_revphase = "P,p,Ped",
                  model="prem"):
         self.taupserver = taupserver
-        self.eventdepth = eventdepth
+        self.evtdepth = evtdepth
         self.eq_scat_phase = eq_scat_phase
         self.sta_scat_revphase = sta_scat_revphase
         self.model = model
@@ -65,7 +65,7 @@ class SWAT:
         params = taup.TimeQuery()
         params.model(self.model)
         params.receiverdepth(scat_timedist.depth) # scatterer depth
-        params.sourcedepth(self.eventdepth)
+        params.sourcedepth(self.evtdepth)
         params.seconds(traveltime-scat_timedist.time)
         params.phase(self.eq_scat_phase)
         result = params.calc(self.taupserver)
@@ -157,7 +157,6 @@ class SWAT:
             spp = self.check_path_points(a, traveltime, bazoffset=bazoffset, bazdelta=bazdelta)
             scatterers = scatterers + spp
         out = SwatResult(
-            eventdepth = self.eventdepth,
             esdistdeg = self.es_distdeg,
             esaz = self.es_az,
             esbaz = self.es_baz,
@@ -168,6 +167,7 @@ class SWAT:
             model = self.model,
             evtlat = self.evtlat,
             evtlon =  self.evtlon,
+            evtdepth = self.evtdepth,
             stalat = self.stalat,
             stalon = self.stalon,
             rayparamdeg = rayparamdeg,
