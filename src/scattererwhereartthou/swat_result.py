@@ -6,6 +6,7 @@ class Scatterer:
     """Class to hold a potential scatterer"""
     scat: TimeDist
     scat_baz: float
+    sta_scat_phase: str
     scat_evt: Arrival
 
 @dataclass

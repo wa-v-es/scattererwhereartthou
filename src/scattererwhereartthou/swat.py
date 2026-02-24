@@ -61,35 +61,37 @@ class SWAT:
 
     def distaz(self):
         return distaz_deg(evtlat, evtlon, stalat, stalon)
-    def scat_to_eq(self, timedist, traveltime, sta_scat_arrival, bazoffset=0, bazdelta=180):
+    def scat_to_eq(self, scat_timedist, traveltime, sta_scat_arrival, bazoffset=0, bazdelta=180):
         params = taup.TimeQuery()
         params.model(self.model)
-        params.receiverdepth(timedist.depth) # scatterer depth
+        params.receiverdepth(scat_timedist.depth) # scatterer depth
         params.sourcedepth(self.eventdepth)
-        params.seconds(traveltime-timedist.time)
+        params.seconds(traveltime-scat_timedist.time)
         params.phase(self.eq_scat_phase)
         result = params.calc(self.taupserver)
         minbaz = self.es_baz-bazoffset-bazdelta
         scatterers = []
         for a in result.arrivals:
-            if a.distdeg + timedist.distdeg > self.es_distdeg:
-                triangleAns  = findTrianglePoints(self.evtlat, self.evtlon, self.stalat, self.stalon, timedist.distdeg, a.distdeg)
+            if a.distdeg + scat_timedist.distdeg > self.es_distdeg:
+                triangleAns  = findTrianglePoints(self.evtlat, self.evtlon, self.stalat, self.stalon, scat_timedist.distdeg, a.distdeg)
                 if triangleAns is None:
                     continue
                 pta, ptb, baz_offset, es_baz  = triangleAns
                 pta_baz = pta[2]
                 ptb_baz = ptb[2]
-                tda = dataclasses.replace(timedist, lat=pta[0], lon=pta[1])
-                tdb = dataclasses.replace(timedist, lat=ptb[0], lon=ptb[1])
+                tda = dataclasses.replace(scat_timedist, lat=pta[0], lon=pta[1])
+                tdb = dataclasses.replace(scat_timedist, lat=ptb[0], lon=ptb[1])
                 if bazdelta >= 180 or (pta_baz-minbaz) % 360 <= 2*bazdelta:
                     scatterers.append(Scatterer(
                         scat = tda,
                         scat_baz = pta_baz,
+                        sta_scat_phase=sta_scat_arrival.phase,
                         scat_evt = a))
                 if bazdelta >= 180 or (ptb_baz-minbaz) % 360 <= 2*bazdelta:
                     scatterers.append(Scatterer(
                         scat = tdb,
                         scat_baz = ptb_baz,
+                        sta_scat_phase=sta_scat_arrival.phase,
                         scat_evt = a))
         return scatterers
 
