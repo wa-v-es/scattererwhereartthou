@@ -86,12 +86,14 @@ class SWAT:
                         scat = tda,
                         scat_baz = pta_baz,
                         sta_scat_phase=sta_scat_arrival.phase,
+                        sta_scat_rayparam=sta_scat_arrival.rayparam,
                         evt_scat = a))
                 if bazdelta >= 180 or (ptb_baz-minbaz) % 360 <= 2*bazdelta:
                     scatterers.append(Scatterer(
                         scat = tdb,
                         scat_baz = ptb_baz,
                         sta_scat_phase=sta_scat_arrival.phase,
+                        sta_scat_rayparam=sta_scat_arrival.rayparam,
                         evt_scat = a))
         return scatterers
 

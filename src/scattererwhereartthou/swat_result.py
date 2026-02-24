@@ -7,6 +7,7 @@ class Scatterer:
     scat: TimeDist
     scat_baz: float
     sta_scat_phase: str
+    sta_scat_rayparam: float
     evt_scat: Arrival
 
 @dataclass
