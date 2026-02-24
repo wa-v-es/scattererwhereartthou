@@ -31,7 +31,7 @@ folder_pattern = "slow_5_time/*.json"
 files = sorted(glob.glob(folder_pattern))
 
 cmap = plt.get_cmap("plasma")   # pick any: viridis, plasma, turbo, etc.
-norm = mpl.colors.Normalize(vmin=0, vmax=2)  # 1–20 sec
+norm = mpl.colors.Normalize(vmin=0, vmax=.1)  # 1–20 sec
 # norm = mpl.colors.Normalize(vmin=1, vmax=20)  # 1–20 sec
 
 geod=pyproj.Geod(ellps="WGS84")
@@ -61,7 +61,7 @@ for fn in files:
         plt.title(f'Scatter: rayp:{firstData["rayparamdeg"]} phase:{firstData["toscatphase"]} - {firstData["fromscatphase"]}  {makeBazTitle(firstData)}')
 
         for s in firstData["scatterers"]:
-            plt.scatter(s["scat"]['lon'], s["scat"]['lat'], edgecolors='black', s=50,lw=.25, marker='.', color=color,alpha=.8)
+            plt.scatter(s["scat"]['lon'], s["scat"]['lat'], edgecolors='black', s=40,lw=.2, marker='.', color=color,alpha=.6)
 
 plt.scatter(firstData["stalon"], firstData["stalat"], marker='v', s=60, color='navy')
 plt.scatter(firstData["evtlon"], firstData["evtlat"], marker='*', s=60, color='navy')
@@ -69,7 +69,7 @@ plt.scatter(firstData["evtlon"], firstData["evtlat"], marker='*', s=60, color='n
 line_arc=geod.inv_intermediate(firstData["stalon"],firstData["stalat"],firstData["evtlon"], firstData["evtlat"],npts=300)
 lon_points=np.array(line_arc.lons)
 lat_points=np.array(line_arc.lats)
-plt.plot(lon_points, lat_points, transform=ccrs.Geodetic(),color='darkgreen',lw=.7,alpha=.8)
+plt.plot(lon_points, lat_points, transform=ccrs.Geodetic(),color='darkgreen',lw=.65,alpha=.6)
 
 
 sm = mpl.cm.ScalarMappable(norm=norm, cmap=cmap)

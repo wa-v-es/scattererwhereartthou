@@ -4,13 +4,13 @@ import taup
 from scattererwhereartthou import SWAT, mapplot, sliceplot
 
 
-taup_path="../../../seis/TauP/build/install/TauP/bin/taup"
+taup_path="../TauP-3.2.0-SNAPSHOT6/bin/taup"
 model="prem"
 evt=(66, 166)
 eventdepth=0
 sta=(-11, 120)
 phase="P"
-slowrange=(4.5,4.8,0.2)  # min, max, step
+slowrange=(4.5,5.5,0.5)  # min, max, step
 delayrange=(5,7,1.0)     # min, max, step
 bazoffset=3
 bazdelta=0.5
@@ -18,7 +18,7 @@ bazdelta=0.5
 
 with taup.TauPServer( taup_path=taup_path) as taupserver:
     print("starting...")
-    params = taup.TimeQuery()
+    params = taup.PathQuery()
     params.model(model)
     params.event(*evt)
     params.sourcedepth(eventdepth)

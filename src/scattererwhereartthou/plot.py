@@ -92,9 +92,9 @@ def sliceplot(swatList, tauptimes=None, outfilename="swat_slice.png", show=True,
             deepest = swatData.eventdepth
         if swatData.esdistdeg > maxESDeg:
             maxESDeg = swatData.esdistdeg
-        plt.scatter(math.radians(swatData.esdistdeg), rofe-swatData.eventdepth, marker='*', s=20, color='blue')
+        plt.scatter(math.radians(swatData.esdistdeg), rofe-swatData.eventdepth, marker='*', s=40, color='blue')
         for s in swatData.scatterers:
-            plt.scatter(math.radians(s.scat.distdeg), rofe-s.scat.depth, marker='.', color='tomato')
+            plt.scatter(math.radians(s.scat.distdeg), rofe-s.scat.depth, marker='.',edgecolors='black', s=20,lw=.2, color='tomato',alpha=.5)
 
     for swatData in swatList:
         for s in firstData.scatterers:
