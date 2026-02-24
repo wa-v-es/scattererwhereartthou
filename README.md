@@ -207,8 +207,8 @@ back to the event.
 ```
 
 Several
-[example](https://github.com/crotwell/scattererwhereartthou/blob/main/example.py)
+[example](https://github.com/crotwell/scattererwhereartthou/tree/main/examples)
 python scripts also show how to call swat from a script,
-for larger data volumes or for more control of the output, like [csv]()https://github.com/crotwell/scattererwhereartthou/blob/main/example_csv.py.
+for larger data volumes or for more control of the output, like csv.
 
 All this is subject to change!
