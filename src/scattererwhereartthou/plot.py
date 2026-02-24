@@ -30,7 +30,7 @@ def mapplot(swatList, tauptimes=None, outfilename="swat_map.png", show=True):
     ax.add_feature(cfeature.OCEAN, color='lightskyblue')
     ax.add_feature(cfeature.LAND, color="oldlace")
     gridlines=ax.gridlines(draw_labels=True, alpha=.80)
-    plt.title(f'Scatter: rayp:{firstData.rayparamdegs} phase:{firstData.eq_scat_phase} - rev {firstData.sta_scat_revphase}  {makeBazTitle(firstData)}')
+    plt.title(f'Scatter: rayp:{firstData.rayparamdegs} phase:{firstData.evt_scat_phase} - rev {firstData.sta_scat_revphase}  {makeBazTitle(firstData)}')
 
     if tauptimes is not None:
         for a in tauptimes.arrivals:
@@ -67,7 +67,7 @@ def sliceplot(swatList, tauptimes=None, outfilename="swat_slice.png", show=True,
     plt.figure()
     ax = plt.axes(projection='polar')
 
-    plt.title(f'Scatter: rayp:{firstData.rayparamdegs} phase:{firstData.eq_scat_phase} - rev {firstData.sta_scat_revphase} {makeBazTitle(firstData)}')
+    plt.title(f'Scatter: rayp:{firstData.rayparamdegs} phase:{firstData.evt_scat_phase} - rev {firstData.sta_scat_revphase} {makeBazTitle(firstData)}')
 
     plt.scatter(0, 0, marker='v', s=20, color='blue')
 
