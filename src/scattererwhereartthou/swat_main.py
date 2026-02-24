@@ -28,9 +28,6 @@ def runswat(args):
             "swat": swatList
         }
 
-        toscatphase = "P,p,Ped"
-        fromscatphase = "P,p,Ped"
-
         if len(timeResult.arrivals) == 0:
             print(f"No arrivals for {ref_phase} for {evtlat},{evtlon} ({eventdepth} km) to {stalat},{stalon}")
         else:
@@ -38,15 +35,18 @@ def runswat(args):
                 if args.verbose:
                     print(f"Arrival: {a}")
                 swat = SWAT(taupserver, args.eventdepth,
-                            toscatphase, fromscatphase, model=args.model)
+                            evt_scat_phase=args.evtscatphase,
+                            sta_scat_revphase=args.stascatphase,
+                            model=args.model)
                 if args.mindepth is not None:
                     swat.minDepth(args.mindepth)
                 swat.event(evtlat, evtlon)
                 swat.station(stalat, stalon)
                 obs_baz_offset = args.bazoffset[0]
                 obs_baz_delta = args.bazoffset[1]
+                traveltimes = [a.time+delay for delay in args.delay]
                 ans = swat.find_via_path(args.slow,
-                                         a.time+args.delay,
+                                         traveltimes,
                                          bazoffset=obs_baz_offset,
                                          bazdelta=obs_baz_delta)
                 swatList.append(ans)
@@ -111,7 +111,8 @@ def do_parseargs():
     )
     parser.add_argument(
         "--delay",
-        help="time delay of arrival relative to reference phase.",
+        help="time delays of arrival relative to reference phase.",
+        nargs='+',
         type=float, required=True, metavar="s"
     )
     parser.add_argument(
@@ -124,7 +125,8 @@ def do_parseargs():
     parser.add_argument(
         "--slow",
         help="observed slowness of suspected scatterer (s/deg)",
-        type=float, required=True, metavar='p'
+        type=float, nargs='+',
+        required=True, metavar='p'
     )
     parser.add_argument(
         "--mindepth",
@@ -135,6 +137,16 @@ def do_parseargs():
         "--model",
         help="earth model, as used by TauP.",
         default="prem", metavar='name'
+    )
+    parser.add_argument(
+        "--stascatphase",
+        help="list of reversed phases from the station to the scatterer.",
+        default="p,P,Ped", metavar='phase'
+    )
+    parser.add_argument(
+        "--evtscatphase",
+        help="list of phases from the earthquake to the scatterer.",
+        default="p,P,Ped", metavar='phase'
     )
     parser.add_argument(
         "--taup",

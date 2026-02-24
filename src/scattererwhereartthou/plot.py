@@ -30,7 +30,7 @@ def mapplot(swatList, tauptimes=None, outfilename="swat_map.png", show=True):
     ax.add_feature(cfeature.OCEAN, color='grey',alpha=.2)
     ax.add_feature(cfeature.LAND, color="oldlace")
     gridlines=ax.gridlines(draw_labels=True, alpha=.80)
-    plt.title(f'Scatter: rayp:{firstData.rayparamdeg} phase:{firstData.toscatphase} - {firstData.fromscatphase}  {makeBazTitle(firstData)}')
+    plt.title(f'Scatter: rayp:{firstData.rayparamdegs} phase:{firstData.evt_scat_phase} - rev {firstData.sta_scat_revphase}  {makeBazTitle(firstData)}')
 
     if tauptimes is not None:
         for a in tauptimes.arrivals:
@@ -67,19 +67,19 @@ def sliceplot(swatList, tauptimes=None, outfilename="swat_slice.png", show=True,
     plt.figure()
     ax = plt.axes(projection='polar')
 
-    plt.title(f'Scatter: rayp:{firstData.rayparamdeg} phase:{firstData.toscatphase} - {firstData.fromscatphase} {makeBazTitle(firstData)}')
+    plt.title(f'Scatter: rayp:{firstData.rayparamdegs} phase:{firstData.evt_scat_phase} - rev {firstData.sta_scat_revphase} {makeBazTitle(firstData)}')
 
     plt.scatter(0, 0, marker='v', s=20, color='blue')
 
 
-    deepest = firstData.eventdepth
+    deepest = firstData.evtdepth
     if tauptimes is not None:
         for a in tauptimes.arrivals:
             adist = []
             adepth = []
             for seg in a.pathSegments:
                 for td in seg.segment:
-                    adist.append(math.radians(td.distdeg))
+                    adist.append(math.radians(a.distdeg-td.distdeg))
                     adepth.append(rofe-td.depth)
                     if td.depth > deepest:
                         deepest = td.depth
@@ -88,8 +88,8 @@ def sliceplot(swatList, tauptimes=None, outfilename="swat_slice.png", show=True,
 
     maxESDeg = firstData.esdistdeg
     for swatData in swatList:
-        if swatData.eventdepth > deepest:
-            deepest = swatData.eventdepth
+        if swatData.evtdepth > deepest:
+            deepest = swatData.evtdepth
         if swatData.esdistdeg > maxESDeg:
             maxESDeg = swatData.esdistdeg
         plt.scatter(math.radians(swatData.esdistdeg), rofe-swatData.eventdepth, marker='*', s=40, color='blue')

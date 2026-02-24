@@ -1,19 +1,20 @@
 
 import dataclasses
+import math
 import taup
-from .spherical import findTrianglePoints, distaz_deg
+from .spherical import findTrianglePoints, distaz_deg, linInterpTDByDist
 from .swat_result import SwatResult, Scatterer
 
 
 class SWAT:
-    def __init__(self, taupserver, eventdepth,
-                 toscatphase = "P,p,Ped",
-                 fromscatphase = "P,p,Ped",
+    def __init__(self, taupserver, evtdepth,
+                 evt_scat_phase = "P,p,Ped",
+                 sta_scat_revphase = "P,p,Ped",
                  model="prem"):
         self.taupserver = taupserver
-        self.eventdepth = eventdepth
-        self.toscatphase = toscatphase
-        self.fromscatphase = fromscatphase
+        self.evtdepth = evtdepth
+        self.evt_scat_phase = evt_scat_phase
+        self.sta_scat_revphase = sta_scat_revphase
         self.model = model
         self.evtlat = 0
         self.evtlon =  0
@@ -22,6 +23,7 @@ class SWAT:
         self.es_distdeg = 0
         self.es_az = 0
         self.es_baz = 0
+        self.dist_step = 2
         self._mindepth=50
         self.backproject_depths = self.find_backproject_depths()
     def minDepth(self, val):
@@ -59,39 +61,43 @@ class SWAT:
 
     def distaz(self):
         return distaz_deg(evtlat, evtlon, stalat, stalon)
-    def scat_to_eq(self, timedist, traveltime, sta_scat_arrival, bazoffset=0, bazdelta=180):
+    def scat_to_eq(self, scat_timedist, traveltimes, sta_scat_arrival, bazoffset=0, bazdelta=180):
         params = taup.TimeQuery()
         params.model(self.model)
-        params.sourcedepth(timedist.depth) # scatterer depth
-        params.receiverdepth(self.eventdepth)
-        params.seconds(traveltime-timedist.time)
-        params.phase(self.toscatphase)
+        params.receiverdepth(scat_timedist.depth) # scatterer depth
+        params.sourcedepth(self.evtdepth)
+        params.seconds([t-scat_timedist.time for t in traveltimes])
+        params.phase(self.evt_scat_phase)
         result = params.calc(self.taupserver)
         minbaz = self.es_baz-bazoffset-bazdelta
         scatterers = []
         for a in result.arrivals:
-            if a.distdeg + timedist.distdeg > self.es_distdeg:
-                triangleAns  = findTrianglePoints(self.evtlat, self.evtlon, self.stalat, self.stalon, timedist.distdeg, a.distdeg)
+            if a.distdeg + scat_timedist.distdeg > self.es_distdeg:
+                triangleAns  = findTrianglePoints(self.evtlat, self.evtlon, self.stalat, self.stalon, scat_timedist.distdeg, a.distdeg)
                 if triangleAns is None:
                     continue
                 pta, ptb, baz_offset, es_baz  = triangleAns
                 pta_baz = pta[2]
                 ptb_baz = ptb[2]
-                tda = dataclasses.replace(timedist, lat=pta[0], lon=pta[1])
-                tdb = dataclasses.replace(timedist, lat=ptb[0], lon=ptb[1])
+                tda = dataclasses.replace(scat_timedist, lat=pta[0], lon=pta[1])
+                tdb = dataclasses.replace(scat_timedist, lat=ptb[0], lon=ptb[1])
                 if bazdelta >= 180 or (pta_baz-minbaz) % 360 <= 2*bazdelta:
                     scatterers.append(Scatterer(
                         scat = tda,
                         scat_baz = pta_baz,
-                        scat_evt = a))
+                        sta_scat_phase=sta_scat_arrival.phase,
+                        sta_scat_rayparam=sta_scat_arrival.rayparam,
+                        evt_scat = a))
                 if bazdelta >= 180 or (ptb_baz-minbaz) % 360 <= 2*bazdelta:
                     scatterers.append(Scatterer(
                         scat = tdb,
                         scat_baz = ptb_baz,
-                        scat_evt = a))
+                        sta_scat_phase=sta_scat_arrival.phase,
+                        sta_scat_rayparam=sta_scat_arrival.rayparam,
+                        evt_scat = a))
         return scatterers
 
-    def check_path_points(self, sta_scat_arrival, traveltime, bazoffset=0, bazdelta=180):
+    def check_path_points(self, sta_scat_arrival, traveltimes, bazoffset=0, bazdelta=180):
         """
         Check each path point from the given arrival, to see if it is a
         potential scattering point. The arrival should have been generated with
@@ -110,28 +116,41 @@ class SWAT:
         Returns a list of potential scatterers.
         """
         scat = []
+        prevTD = None
         for seg in sta_scat_arrival.pathSegments:
             for td in seg.segment:
-                if td.distdeg == 0:
+                if td.distdeg == 0 or td.depth < self._mindepth:
+                    prevTD = td
                     continue
-                if td.depth < self._mindepth:
-                    continue
-                #print(f"path: deg: {td.distdeg} depth: {td.depth}  time: {td.time}")
-                scatList = self.scat_to_eq(td,
-                                           traveltime,
-                                           sta_scat_arrival,
-                                           bazoffset=bazoffset,
-                                           bazdelta=bazdelta)
-                scat = scat + scatList
+                if prevTD is not None and math.fabs(td.distdeg-prevTD.distdeg) > self.dist_step:
+                    # need to interpolate between path points
+                    num = math.ceil(math.fabs(td.distdeg-prevTD.distdeg)/self.dist_step)
+                    step = (td.distdeg-prevTD.distdeg)/num
+                    for n in range(num):
+                        interpTD = linInterpTDByDist(prevTD, td, prevTD.distdeg+n*step)
+                        scat = scat + self.scat_to_eq(interpTD,
+                                                   traveltimes,
+                                                   sta_scat_arrival,
+                                                   bazoffset=bazoffset,
+                                                   bazdelta=bazdelta)
+                scat = scat + self.scat_to_eq(td,
+                                       traveltimes,
+                                       sta_scat_arrival,
+                                       bazoffset=bazoffset,
+                                       bazdelta=bazdelta)
+                prevTD = td
 
-        print(sta_scat_arrival)
         return scat
 
-    def find_via_path(self, rayparamdeg, traveltime, bazoffset=0, deltatime=0, bazdelta=180):
+    def find_via_path(self, rayparamdegs, traveltimes, bazoffset=0, deltatime=0, bazdelta=180):
+        if isinstance(rayparamdegs, float):
+            rayparamdegs = [rayparamdegs]
+        if isinstance(traveltimes, float):
+            traveltimes = [traveltimes]
         params = taup.PathQuery()
         params.model(self.model)
-        params.rayparamdeg(rayparamdeg)
-        params.phase(self.fromscatphase)
+        params.rayparamdeg(rayparamdegs)
+        params.phase(self.sta_scat_revphase)
         params.receiverdepth(self.backproject_depths)
         # actually station, shoot ray back to scatterer
         # adding station as the "event" gives lat,lon for path points
@@ -141,24 +160,24 @@ class SWAT:
         result = params.calc(self.taupserver)
         scatterers = []
         for a in result.arrivals:
-            spp = self.check_path_points(a, traveltime, bazoffset=bazoffset, bazdelta=bazdelta)
+            spp = self.check_path_points(a, traveltimes, bazoffset=bazoffset, bazdelta=bazdelta)
             scatterers = scatterers + spp
         out = SwatResult(
-            eventdepth = self.eventdepth,
             esdistdeg = self.es_distdeg,
             esaz = self.es_az,
             esbaz = self.es_baz,
             bazoffset = bazoffset,
             bazdelta = bazdelta,
-            toscatphase = self.toscatphase,
-            fromscatphase = self.fromscatphase,
+            evt_scat_phase = self.evt_scat_phase,
+            sta_scat_revphase = self.sta_scat_revphase,
             model = self.model,
             evtlat = self.evtlat,
             evtlon =  self.evtlon,
+            evtdepth = self.evtdepth,
             stalat = self.stalat,
             stalon = self.stalon,
-            rayparamdeg = rayparamdeg,
-            traveltime = traveltime,
+            rayparamdegs = rayparamdegs,
+            traveltimes = traveltimes,
             mindepth = self._mindepth,
             scatterers = scatterers
         )
