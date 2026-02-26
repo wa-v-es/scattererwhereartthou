@@ -27,7 +27,7 @@ def mapplot(swatList, tauptimes=None, outfilename="swat_map.png", show=True):
     firstData = swatList[0]
     plt.figure()
     ax = plt.axes(projection=ccrs.PlateCarree())
-    ax.add_feature(cfeature.OCEAN, color='grey',alpha=.2)
+    ax.add_feature(cfeature.OCEAN, color='lightskyblue',alpha=.2)
     ax.add_feature(cfeature.LAND, color="oldlace")
     gridlines=ax.gridlines(draw_labels=True, alpha=.80)
     plt.title(f'Scatter: rayp:{firstData.rayparamdegs} phase:{firstData.evt_scat_phase} - rev {firstData.sta_scat_revphase}  {makeBazTitle(firstData)}')
@@ -47,7 +47,7 @@ def mapplot(swatList, tauptimes=None, outfilename="swat_map.png", show=True):
         ax.scatter(swatData.stalon, swatData.stalat, marker='v', s=20, color='blue')
         ax.scatter(swatData.evtlon, swatData.evtlat, marker='*', s=20, color='blue')
         for s in swatData.scatterers:
-            ax.scatter(s.scat.lon, s.scat.lat, marker='.', color='tomato')
+            ax.scatter(s.scat.lon, s.scat.lat, marker='.', color='tomato',alpha=.5)
     plt.savefig(outfilename, dpi=700, bbox_inches='tight', pad_inches=0.1)
     if show:
         print("Show map")
@@ -92,9 +92,9 @@ def sliceplot(swatList, tauptimes=None, outfilename="swat_slice.png", show=True,
             deepest = swatData.evtdepth
         if swatData.esdistdeg > maxESDeg:
             maxESDeg = swatData.esdistdeg
-        plt.scatter(math.radians(swatData.esdistdeg), rofe-swatData.eventdepth, marker='*', s=40, color='blue')
+        plt.scatter(math.radians(swatData.esdistdeg), rofe-swatData.evtdepth, marker='*', s=20, color='blue')
         for s in swatData.scatterers:
-            plt.scatter(math.radians(s.scat.distdeg), rofe-s.scat.depth, marker='.',edgecolors='black', s=20,lw=.2, color='tomato',alpha=.5)
+            plt.scatter(math.radians(s.scat.distdeg), rofe-s.scat.depth, marker='.', color='tomato',alpha=.5)
 
     for swatData in swatList:
         for s in firstData.scatterers:

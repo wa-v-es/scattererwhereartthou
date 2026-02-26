@@ -2,29 +2,30 @@
 
 import taup
 from scattererwhereartthou import SWAT, mapplot, sliceplot
-
+import matplotlib.pyplot as plt
+plt.ion()
 # location of taup version 3 executable, not needed if already on PATH
-taup_path="../../../seis/TauP/build/install/TauP/bin/taup"
+taup_path="../../TauP-3.2.0-SNAPSHOT6/bin/taup"
 
-
+# -4.33 143.16 70.00 230402_180411_PA_inc2_r2.5
 model="prem"    # velocity model
 evt=(66, 166)   # eq lat, lon
 eventdepth=200  # eq depth
 sta=(-11, 120)  # station lat, lon
 phase="P"   # reference phase
-max_dist_step=1.0 # max separation between path scatterers in degrees, default is 2 deg
+max_dist_step=.50 # max separation between path scatterers in degrees, default is 2 deg
 
 # observed slownesses at station, usually p_minus, p, p_plus
 # but can be more values for denser search results
 # Note that the scatterer locations are quite sensitive to slowness, and so
 # a denser gridsearch over slowness may be needed if the min-max range is large
-slownesses=[5.5, 5.625, 5.75, 5.875, 6.0]
-slownesses = [5.75+.05*p for p in range(-5, 6)]
+slownesses=[5.5, 5.75, 6.0, 6.25]
+# slownesses = [5.75+.05*p for p in range(-5, 6)]
 # delay times relative to reference phase arrival, usually t_minus, t, t_plus
 # but can be more values for denser search results
-delaytimes=[5, 5.25, 5.5]
-bazoffset=3
-bazdelta=0.5
+delaytimes=[5, 7.5, 10]
+bazoffset=0
+bazdelta=5
 
 
 with taup.TauPServer( taup_path=taup_path) as taupserver:

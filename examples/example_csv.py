@@ -9,13 +9,15 @@ import taup
 from scattererwhereartthou import SWAT, mapplot, sliceplot
 
 # location of taup version 3 executable, not needed if already on PATH
-taup_path="../../../seis/TauP/build/install/TauP/bin/taup"
+taup_path="../../TauP-3.2.0-SNAPSHOT6/bin/taup"
 
+# -4.33 143.16 70.00 230402_180411_PA_inc2_r2.5
+# la/lo/elv: 64.67 -155.88 362 TA (GSA) (grid 65, -157)
 
-model="prem"    # velocity model
-evt=(66, 166)   # eq lat, lon
-eventdepth=200  # eq depth
-sta=(-11, 120)  # station lat, lon
+model="iasp91"    # velocity model
+evt=(-4.33, 143.16)   # eq lat, lon
+eventdepth=70  # eq depth
+sta=(64.67, -155.88)  # station lat, lon
 phase="P"   # reference phase
 max_dist_step=1.0 # max separation between path scatterers in degrees, default is 2 deg
 
@@ -24,19 +26,26 @@ max_dist_step=1.0 # max separation between path scatterers in degrees, default i
 # but can be more values for denser search results
 # Note that the scatterer locations are quite sensitive to slowness, and so
 # a denser gridsearch over slowness may be needed if the min-max range is large
-slownesses = [5.75+.05*p for p in range(-5, 6)]
+# slownesses = [5.75+.05*p for p in range(-5, 6)]
+slownesses = [6+.1*p for p in range(2)]
+
 # delay times relative to reference phase arrival, usually t_minus, t, t_plus
 # but can be more values for denser search results
-delaytimes=[5, 5.25, 5.5]
-bazoffset=3
-bazdelta=0.5
+delaytimes = list(range(50, 171, 5))
+delaytimes=[50,55]
+bazoffset=0
+bazdelta=5
+sta_scat_revphase="p,P,Ped,pP,PP"
+evt_scat_phase="p,P,Ped,pP,PP"
 
-with open("swat.csv", "w", newline='') as outcsv:
+
+with open("swat_try.csv", "w", newline='') as outcsv:
     csvwriter = csv.writer(outcsv)
     csvwriter.writerow(["scatlat", "scatlon", "scatdepth",
-                        "scatdistdeg", "scatbaz", "sta_scat_p", "sta_scat_time",
+                        "scatdistdeg", "scatbaz", "sta_scat_p", "scat_time",
+                        'sta_scat_phase','evt_scat_phase'
                         "evtlat", "evtlon", "evtdepth",
-                        "stalat", "stalon"
+                        "stalat", "stalon",'baz_GCP'
                         ])
     with taup.TauPServer( taup_path=taup_path) as taupserver:
         print("starting...")
@@ -50,7 +59,9 @@ with open("swat.csv", "w", newline='') as outcsv:
         timeResult = params.calc(taupserver)
 
         swatList = []
-        swat = SWAT(taupserver, eventdepth, model=model)
+        swat = SWAT(taupserver, eventdepth, model=model,
+            sta_scat_revphase=sta_scat_revphase,
+            evt_scat_phase=evt_scat_phase)
         swat.event(*evt)
         swat.station(*sta)
         swat.dist_step = max_dist_step
@@ -67,7 +78,8 @@ with open("swat.csv", "w", newline='') as outcsv:
                                     format(sc.scat.distdeg, "0.2f"),
                                     format(sc.scat_baz, "0.3f"),
                                     format(sc.sta_scat_rayparam, "0.2f"),
-                                    format(sc.scat.time, "0.2f"),
+                                    format(sc.scat.time+sc.evt_scat.time, "0.2f"),
+                                    sc.sta_scat_phase,sc.evt_scat.phase,
                                     ans.evtlat, ans.evtlon, ans.evtdepth,
-                                    ans.stalat, ans.stalon
+                                    ans.stalat, ans.stalon,format(ans.esbaz, "0.3f")
                                     ])
