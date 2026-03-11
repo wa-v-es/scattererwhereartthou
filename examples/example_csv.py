@@ -90,16 +90,9 @@ def get_array_lat_long(eq_folder):
         deets_all.append(deets)
     return deets_all
 ####
-def get_rp_for_leg(model, phase, src_depth_km, delta_deg_val,rcv_depth_km):
-    rps = model.get_ray_paths(
-        source_depth_in_km=float(src_depth_km),
-        distance_in_degree=float(delta_deg_val),
-        phase_list=[phase],receiver_depth_in_km=rcv_depth_km)
-    if not rps:
-        return None
-    return rps[0]
 
 def get_rp_using_taup(model, phase, evt,src_depth,sta):
+    "not used any more"
     with taup.TauPServer(taup_path=taup_path) as taupserver:
     # query params correspond to the tools, one of:
     # time, pierce, path, curve, discon, distaz, find, phase, refltrans, table, velplot, wavefront
@@ -113,8 +106,6 @@ def get_rp_using_taup(model, phase, evt,src_depth,sta):
 
     return timeResult
 
-# location of taup version 3 executable, not needed if already on PATH
-
 
 # -4.33 143.16 70.00 230402_180411_PA_inc2_r2.5
 # la/lo/elv: 64.67 -155.88 362 TA (GSA) (grid 65, -157)
@@ -127,7 +118,7 @@ deets_all= get_array_lat_long('230402_180411_PA_inc2_r2.5')
 # sys.exit()
 model="iasp91"    # velocity model
 # model_t = TauPyModel(model)
-
+deets_all=deets_all[0:2]
 evt=(deets_all[0]['Event'][0], deets_all[0]['Event'][1])   # eq lat, lon
 eventdepth=deets_all[0]['Event'][2]  # eq depth
 # sta=(64.67, -155.88)  # station lat, lon
@@ -150,8 +141,9 @@ bazdelta=10
 sta_scat_revphase="p,P,Ped,pP,PP"
 evt_scat_phase="p,P,Ped,pP,PP"
 
+with open("swat_230402_180411_.csv", "w", newline='') as outcsv:
 
-with open("swat_230402_180411_all_grids.csv", "w", newline='') as outcsv:
+# with open("swat_230402_180411_all_grids.csv", "w", newline='') as outcsv:
     csvwriter = csv.writer(outcsv)
     csvwriter.writerow(["scatlat", "scatlon", "scatdepth",
                         "scatdistdeg", "scatbaz", "sta_scat_p", "scat_time",
@@ -159,25 +151,37 @@ with open("swat_230402_180411_all_grids.csv", "w", newline='') as outcsv:
                         "evtlat", "evtlon", "evtdepth",
                         "stalat", "stalon",'baz_GCP'
                         ])
-    for grid in deets_all:
-        sta=(grid['ArrCen'][0],grid['ArrCen'][1])
-        dist=grid['Dist']
-        sP= get_rp_using_taup(model, "sP", evt, eventdepth,sta)
-        PP= get_rp_using_taup(model, "PP", evt, eventdepth,sta)
-        #### slowness and time between sP and PP.
-        slownesses = np.arange(sP.arrivals[0].rayparam+.5, PP.arrivals[0].rayparam-.5, 0.25)
-        delaytimes = np.arange(sP.arrivals[0].time+30, PP.arrivals[0].time-10, 5)
-        # list(range(50, 171, 5))
+    with taup.TauPServer( taup_path=taup_path) as taupserver:
+        for grid in deets_all:
 
-        # sys.exit()
-        with taup.TauPServer( taup_path=taup_path) as taupserver:
-            print("starting...")
-            # reference phase
-            params = taup.PathQuery()
+            print('Doing grid#..\n')
+            sta=(grid['ArrCen'][0],grid['ArrCen'][1])
+            dist=grid['Dist']
+            ######
+            params = taup.TimeQuery()
             params.model(model)
             params.event(*evt)
             params.sourcedepth(eventdepth)
             params.station(*sta)
+
+            params.phase('sP')
+            timeResult = params.calc(taupserver)
+            sP_slow,sP_time=timeResult.arrivals[0].rayparam,timeResult.arrivals[0].time
+
+            params.phase('PP')
+            timeResult = params.calc(taupserver)
+            PP_slow,PP_time=timeResult.arrivals[0].rayparam,timeResult.arrivals[0].time
+
+            #### slowness and time between sP and PP.
+            slownesses = np.arange(sP_slow+.5, PP_slow-.5, 0.25)
+            delaytimes = np.arange(sP_time+30, PP_time-10, 5)
+            # list(range(50, 171, 5))
+
+            # sys.exit()
+
+            print("starting...")
+            # reference phase
+
             params.phase(phase)
             timeResult = params.calc(taupserver)
 
