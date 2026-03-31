@@ -55,7 +55,7 @@ class SWAT:
         disconRes = disconParams.calc(self.taupserver)
         backproject_depths = [0]
         for discon in disconRes.models[0].discontinuities:
-            if discon.preferredname in ["moho", "cmb", "iocb"]:
+            if discon.preferredname in ["cmb", "iocb"]:
                 backproject_depths.append(discon.depth)
         return backproject_depths
 
@@ -110,6 +110,10 @@ class SWAT:
         mantle boundary, as the given ray parameter may be too small to turn
         in the mantle.
 
+        If the phase has reflections, PP, or phase conversions, Sed410P,
+        or name changes due to a major boundary, PKP, then the scattering
+        points must be in the final segments.
+
         If an observed back azimuth and deltabaz are given, potential
         scatterers outside of this azimuthal range are eliminated.
 
@@ -117,16 +121,48 @@ class SWAT:
         """
         scat = []
         prevTD = None
-        for seg in sta_scat_arrival.pathSegments:
+        laterSeg = None
+        possibleLegs = []
+        for seg in reversed(sta_scat_arrival.pathSegments):
+            possibleLegs.append(seg)
+            if laterSeg is not None and seg.wavetype != laterSeg.wavetype:
+                # not ok for scatterer, phase change
+                break
+            elif seg.name != laterSeg.name:
+                # segment name change like P -> K
+                break
+            elif seg.prevendaction == "REFLECT_UNDERSIDE" or \
+                    seg.prevendaction == "REFLECT_TOPSIDE" or \
+                    seg.prevendaction == "REFLECT_UNDERSIDE_CRITICAL" or \
+                    seg.prevendaction == "REFLECT_TOPSIDE_CRITICAL":
+                # not ok for scatterer, reflection
+                break
+            elif seg.prevendaction == "TURN":
+                # keep turn
+                pass
+            else:
+                # are other endactions ok?
+                break
+            laterSeg = seg
+        possibleLegs = list(reversed(possibleLegs)) # flip back to normal ordering
+        for seg in possibleLegs:
             for td in seg.segment:
                 if td.distdeg == 0 or td.depth < self._mindepth:
                     prevTD = td
                     continue
-                if prevTD is not None and math.fabs(td.distdeg-prevTD.distdeg) > self.dist_step:
+                if prevTD is None:
+                    # first good point
+                    scat = scat + self.scat_to_eq(td,
+                                           traveltimes,
+                                           sta_scat_arrival,
+                                           bazoffset=bazoffset,
+                                           bazdelta=bazdelta)
+                elif math.fabs(td.distdeg-prevTD.distdeg) > self.dist_step:
                     # need to interpolate between path points
                     num = math.ceil(math.fabs(td.distdeg-prevTD.distdeg)/self.dist_step)
                     step = (td.distdeg-prevTD.distdeg)/num
-                    for n in range(num):
+                    for n in range(1, num):
+                        # don't include prevTD, but all internal points
                         interpTD = linInterpTDByDist(prevTD, td, prevTD.distdeg+n*step)
                         scat = scat + self.scat_to_eq(interpTD,
                                                    traveltimes,
@@ -139,7 +175,6 @@ class SWAT:
                                        bazoffset=bazoffset,
                                        bazdelta=bazdelta)
                 prevTD = td
-
         return scat
 
     def find_via_path(self, rayparamdegs, traveltimes, bazoffset=0, deltatime=0, bazdelta=180):
