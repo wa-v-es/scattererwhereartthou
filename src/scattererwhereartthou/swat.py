@@ -125,7 +125,9 @@ class SWAT:
         possibleLegs = []
         for seg in reversed(sta_scat_arrival.pathSegments):
             possibleLegs.append(seg)
-            if laterSeg is not None and seg.wavetype != laterSeg.wavetype:
+            if laterSeg is None:
+                pass
+            elif seg.wavetype != laterSeg.wavetype:
                 # not ok for scatterer, phase change
                 break
             elif seg.name != laterSeg.name:
