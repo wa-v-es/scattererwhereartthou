@@ -3,7 +3,8 @@
 """
 Simple example of saving output to a CSV file.
 """
-taup_path="../../TauP-3.2.0-SNAPSHOT6/bin/taup"
+# taup_path="../../TauP-3.2.0-SNAPSHOT6/bin/taup"
+taup_path="../../TauP/build/install/TauP/bin/taup"
 import csv
 import taup
 from scattererwhereartthou import SWAT, mapplot, sliceplot
@@ -92,7 +93,7 @@ def get_array_lat_long(eq_folder):
 ####
 
 def get_rp_using_taup(model, phase, evt,src_depth,sta):
-    "not used any more"
+    #not used any more
     with taup.TauPServer(taup_path=taup_path) as taupserver:
     # query params correspond to the tools, one of:
     # time, pierce, path, curve, discon, distaz, find, phase, refltrans, table, velplot, wavefront
