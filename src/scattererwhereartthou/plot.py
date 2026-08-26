@@ -36,7 +36,7 @@ def mapplot(swatList, tauptimes=None, outfilename="swat_map.png", show=True):
         for a in tauptimes.arrivals:
             alat = []
             alon = []
-            for seg in a.pathSegments:
+            for seg in a.path:
                 for td in seg.segment:
                     alat.append(td.lat)
                     alon.append(td.lon)
@@ -77,7 +77,7 @@ def sliceplot(swatList, tauptimes=None, outfilename="swat_slice.png", show=True,
         for a in tauptimes.arrivals:
             adist = []
             adepth = []
-            for seg in a.pathSegments:
+            for seg in a.path:
                 for td in seg.segment:
                     adist.append(math.radians(a.distdeg-td.distdeg))
                     adepth.append(rofe-td.depth)

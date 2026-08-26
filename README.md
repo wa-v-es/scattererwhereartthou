@@ -18,22 +18,24 @@ and the version must be >= 3.2.0.
 I assume you are on a vaguely *nix like system, are using conda,
 and can do normal download and install activities.
 
-1) Install version 3.2.0-snapshot6 or greater of the TauP Toolkit.
+1) Install version 3.2.0 or greater of the TauP Toolkit.
 This is available here:
 
-https://www.seis.sc.edu/downloads/TauP/prerelease/TauP-3.2.0-SNAPSHOT6.tgz
+https://www.seis.sc.edu/downloads/TauP/prerelease/TauP-3.2.0.tgz
 
 2) Probably put the TauP/bin on your path, although you can override this
 
 3) Grab the latest taup_python package, here:
 
-https://www.seis.sc.edu/downloads/TauP/prerelease/taup-0.2.0a4-py3-none-any.whl
+```
+pip install taup
+```
 
 4) create a conda environment, python>=3.11, install taup_python
 ```
 conda create -n swat python=3.13 -y
 conda activate swat
-pip install taup-0.2.0a4-py3-none-any.whl
+pip install taup
 ```
 
 5) checkout this repo, install it

@@ -66,11 +66,14 @@ class SWAT:
         params.model(self.model)
         params.receiverdepth(scat_timedist.depth) # scatterer depth
         params.sourcedepth(self.evtdepth)
-        params.seconds([t-scat_timedist.time for t in traveltimes])
         params.phase(self.evt_scat_phase)
+        params.seconds([t-scat_timedist.time for t in traveltimes if t>scat_timedist.time])
+        scatterers = []
+        if len(params.get_seconds())==0:
+            # no travel times are possible
+            return scatterers
         result = params.calc(self.taupserver)
         minbaz = self.es_baz-bazoffset-bazdelta
-        scatterers = []
         for a in result.arrivals:
             if a.distdeg + scat_timedist.distdeg > self.es_distdeg:
                 triangleAns  = findTrianglePoints(self.evtlat, self.evtlon, self.stalat, self.stalon, scat_timedist.distdeg, a.distdeg)
@@ -123,7 +126,7 @@ class SWAT:
         prevTD = None
         laterSeg = None
         possibleLegs = []
-        for seg in reversed(sta_scat_arrival.pathSegments):
+        for seg in reversed(sta_scat_arrival.path):
             possibleLegs.append(seg)
             if laterSeg is None:
                 pass
