@@ -73,7 +73,7 @@ class SWAT:
             # no travel times are possible
             return scatterers
         result = params.calc(self.taupserver)
-        minbaz = self.es_baz-bazoffset-bazdelta
+        minbaz = self.es_baz+bazoffset-bazdelta
         for a in result.arrivals:
             if a.distdeg + scat_timedist.distdeg > self.es_distdeg:
                 triangleAns  = findTrianglePoints(self.evtlat, self.evtlon, self.stalat, self.stalon, scat_timedist.distdeg, a.distdeg)
