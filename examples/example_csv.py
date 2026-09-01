@@ -124,7 +124,10 @@ evt=(deets_all[0]['Event'][0], deets_all[0]['Event'][1])   # eq lat, lon
 eventdepth=deets_all[0]['Event'][2]  # eq depth
 # sta=(64.67, -155.88)  # station lat, lon
 phase="P"   # reference phase
-max_dist_step=1.0 # max separation between path scatterers in degrees, default is 2 deg
+
+max_dist_step=2.0 # max separation between path scatterers in degrees, default is 2 deg
+min_dist_step=0.01 # min separation between path scatterers in degrees, default is 0 deg
+                  # potential scatterers are tossed if closer than
 
 # observed slownesses at station, usually p_minus, p, p_plus
 # but can be more values for denser search results
@@ -155,15 +158,12 @@ with open("swat_230402_180411_.csv", "w", newline='') as outcsv:
     with taup.TauPServer( taup_path=taup_path) as taupserver:
         for grid in deets_all:
 
-            print('Doing grid#..\n')
-            sta=(grid['ArrCen'][0],grid['ArrCen'][1])
-            dist=grid['Dist']
-            ######
-            params = taup.TimeQuery()
-            params.model(model)
-            params.event(*evt)
-            params.sourcedepth(eventdepth)
-            params.station(*sta)
+        swatList = []
+        swat = SWAT(taupserver, eventdepth, model=model)
+        swat.event(*evt)
+        swat.station(*sta)
+        swat.max_dist_step = max_dist_step
+        swat.min_dist_step = min_dist_step
 
             params.phase('sP')
             timeResult = params.calc(taupserver)

@@ -23,7 +23,8 @@ class SWAT:
         self.es_distdeg = 0
         self.es_az = 0
         self.es_baz = 0
-        self.dist_step = 2
+        self.max_dist_step = 2
+        self.min_dist_step = 0.0
         self._mindepth=50
         self.backproject_depths = self.find_backproject_depths()
     def minDepth(self, val):
@@ -150,6 +151,7 @@ class SWAT:
                 break
             laterSeg = seg
         possibleLegs = list(reversed(possibleLegs)) # flip back to normal ordering
+        skippedTD=[]
         for seg in possibleLegs:
             for td in seg.segment:
                 if td.distdeg == 0 or td.depth < self._mindepth:
@@ -162,9 +164,11 @@ class SWAT:
                                            sta_scat_arrival,
                                            bazoffset=bazoffset,
                                            bazdelta=bazdelta)
-                elif math.fabs(td.distdeg-prevTD.distdeg) > self.dist_step:
+                    prevTD = td
+                    skippedTD=[]
+                elif math.fabs(td.distdeg-prevTD.distdeg) > self.max_dist_step:
                     # need to interpolate between path points
-                    num = math.ceil(math.fabs(td.distdeg-prevTD.distdeg)/self.dist_step)
+                    num = math.ceil(math.fabs(td.distdeg-prevTD.distdeg)/self.max_dist_step)
                     step = (td.distdeg-prevTD.distdeg)/num
                     for n in range(1, num):
                         # don't include prevTD, but all internal points
@@ -174,12 +178,27 @@ class SWAT:
                                                    sta_scat_arrival,
                                                    bazoffset=bazoffset,
                                                    bazdelta=bazdelta)
+                        prevTD=interpTD
+
+                elif math.fabs(td.distdeg-prevTD.distdeg) < self.min_dist_step:
+                    skippedTD.append(td)
+                    continue
                 scat = scat + self.scat_to_eq(td,
-                                       traveltimes,
-                                       sta_scat_arrival,
-                                       bazoffset=bazoffset,
-                                       bazdelta=bazdelta)
+                                   traveltimes,
+                                   sta_scat_arrival,
+                                   bazoffset=bazoffset,
+                                   bazdelta=bazdelta)
                 prevTD = td
+                skippedTD=[]
+            for td in list(reversed(skippedTD)):
+                maybeScatList = self.scat_to_eq(td,
+                                   traveltimes,
+                                   sta_scat_arrival,
+                                   bazoffset=bazoffset,
+                                   bazdelta=bazdelta)
+                if len(maybeScatList)>0:
+                    scat = scat + maybeScatList
+                    break
         return scat
 
     def find_via_path(self, rayparamdegs, traveltimes, bazoffset=0, deltatime=0, bazdelta=180):

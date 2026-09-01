@@ -21,7 +21,9 @@ and can do normal download and install activities.
 1) Install version 3.2.0 or greater of the TauP Toolkit.
 This is available here:
 
-https://www.seis.sc.edu/downloads/TauP/prerelease/TauP-3.2.0.tgz
+https://doi.org/10.5281/zenodo.10794857
+or
+https://www.seis.sc.edu/downloads/TauP/TauP-3.2.0.tgz
 
 2) Probably put the TauP/bin on your path, although you can override this
 

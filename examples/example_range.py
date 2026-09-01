@@ -2,10 +2,11 @@
 
 import taup
 from scattererwhereartthou import SWAT, mapplot, sliceplot
-import matplotlib.pyplot as plt
-plt.ion()
+
+taup_path=None
 # location of taup version 3 executable, not needed if already on PATH
-taup_path="../../TauP-3.2.0-SNAPSHOT6/bin/taup"
+#taup_path="../../../seis/TauP/build/install/TauP/bin/taup"
+
 
 # -4.33 143.16 70.00 230402_180411_PA_inc2_r2.5
 model="prem"    # velocity model
@@ -13,7 +14,10 @@ evt=(66, 166)   # eq lat, lon
 eventdepth=200  # eq depth
 sta=(-11, 120)  # station lat, lon
 phase="P"   # reference phase
-max_dist_step=.50 # max separation between path scatterers in degrees, default is 2 deg
+
+max_dist_step=2.0 # max separation between path scatterers in degrees, default is 2 deg
+min_dist_step=0.01 # min separation between path scatterers in degrees, default is 0 deg
+                  # potential scatterers are tossed if closer than
 
 # observed slownesses at station, usually p_minus, p, p_plus
 # but can be more values for denser search results
@@ -42,7 +46,8 @@ with taup.TauPServer( taup_path=taup_path) as taupserver:
     swat = SWAT(taupserver, eventdepth, model=model)
     swat.event(*evt)
     swat.station(*sta)
-    swat.dist_step = max_dist_step
+    swat.max_dist_step = max_dist_step
+    swat.min_dist_step = min_dist_step
 
     for a in timeResult.arrivals:
         print(f"Arrival: {a}")
